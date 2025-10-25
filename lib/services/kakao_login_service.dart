@@ -4,33 +4,33 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 class KakaoLoginService {
   static KakaoLoginService? _instance;
   static KakaoLoginService get instance => _instance ??= KakaoLoginService._();
-  
+
   KakaoLoginService._();
 
   /// 카카오톡으로 로그인
   Future<OAuthToken?> loginWithKakaoTalk() async {
     try {
       bool isInstalled = await isKakaoTalkInstalled();
-      
+
       if (isInstalled) {
         return await UserApi.instance.loginWithKakaoTalk();
       } else {
         return await loginWithKakaoAccount();
       }
     } catch (error) {
-      print('카카오톡으로 로그인 실패: $error');
-      
+      // print('카카오톡으로 로그인 실패: $error');
+
       // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
       // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리
       if (error is PlatformException && error.code == 'CANCELED') {
         return null;
       }
-      
+
       // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인
       try {
         return await UserApi.instance.loginWithKakaoAccount();
       } catch (error) {
-        print('카카오계정으로 로그인 실패: $error');
+        // print('카카오계정으로 로그인 실패: $error');
         rethrow;
       }
     }
@@ -41,7 +41,7 @@ class KakaoLoginService {
     try {
       return await UserApi.instance.loginWithKakaoAccount();
     } catch (error) {
-      print('카카오계정으로 로그인 실패: $error');
+      // print('카카오계정으로 로그인 실패: $error');
       rethrow;
     }
   }
@@ -51,7 +51,7 @@ class KakaoLoginService {
     try {
       return await UserApi.instance.me();
     } catch (error) {
-      print('사용자 정보 요청 실패: $error');
+      // print('사용자 정보 요청 실패: $error');
       rethrow;
     }
   }
@@ -60,9 +60,9 @@ class KakaoLoginService {
   Future<void> logout() async {
     try {
       await UserApi.instance.logout();
-      print('로그아웃 성공, SDK에서 토큰 삭제');
+      // print('로그아웃 성공, SDK에서 토큰 삭제');
     } catch (error) {
-      print('로그아웃 실패, SDK에서 토큰 삭제: $error');
+      // print('로그아웃 실패, SDK에서 토큰 삭제: $error');
       rethrow;
     }
   }
@@ -71,9 +71,9 @@ class KakaoLoginService {
   Future<void> unlink() async {
     try {
       await UserApi.instance.unlink();
-      print('연결 끊기 성공, SDK에서 토큰 삭제');
+      // print('연결 끊기 성공, SDK에서 토큰 삭제');
     } catch (error) {
-      print('연결 끊기 실패: $error');
+      // print('연결 끊기 실패: $error');
       rethrow;
     }
   }
@@ -83,7 +83,7 @@ class KakaoLoginService {
     try {
       return await UserApi.instance.accessTokenInfo();
     } catch (error) {
-      print('토큰 정보 확인 실패: $error');
+      // print('토큰 정보 확인 실패: $error');
       rethrow;
     }
   }

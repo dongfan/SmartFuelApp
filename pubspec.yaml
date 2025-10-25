@@ -1,4 +1,4 @@
-name: first_app
+name: smart_fuel
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   kakao_flutter_sdk_user: ^1.9.6
   http: ^1.1.0
+  google_sign_in: ^6.1.5
 
 dev_dependencies:
   flutter_test:
@@ -22,6 +23,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/refuel_robot.png
 
 # flutter_launcher_icons 설정
 flutter_launcher_icons:

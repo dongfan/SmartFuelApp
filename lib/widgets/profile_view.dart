@@ -1,22 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class ProfileView extends StatelessWidget {
   final User? user;
+  final GoogleSignInAccount? googleUser;
+  final String? loginType;
   final VoidCallback? onLogoutPressed;
 
   const ProfileView({
     super.key,
-    required this.user,
+    this.user,
+    this.googleUser,
+    this.loginType,
     this.onLogoutPressed,
   });
+
+  String get displayName {
+    if (loginType == 'kakao' && user != null) {
+      return user!.kakaoAccount?.profile?.nickname ?? '알 수 없음';
+    } else if (loginType == 'google' && googleUser != null) {
+      return googleUser!.displayName ?? '알 수 없음';
+    }
+    return '알 수 없음';
+  }
+
+  String? get profileImageUrl {
+    if (loginType == 'kakao' && user != null) {
+      return user!.kakaoAccount?.profile?.profileImageUrl;
+    } else if (loginType == 'google' && googleUser != null) {
+      return googleUser!.photoUrl;
+    }
+    return null;
+  }
+
+  String? get email {
+    if (loginType == 'kakao' && user != null) {
+      return user!.kakaoAccount?.email;
+    } else if (loginType == 'google' && googleUser != null) {
+      return googleUser!.email;
+    }
+    return null;
+  }
+
+  Color get brandColor {
+    if (loginType == 'kakao') {
+      return const Color(0xFFFEE500);
+    } else if (loginType == 'google') {
+      return const Color(0xFF4285F4);
+    }
+    return Colors.grey;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         const Spacer(flex: 1),
-        
+
         // 프로필 카드
         Container(
           width: double.infinity,
@@ -39,12 +80,13 @@ class ProfileView extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: const Color(0xFFFEE500),
-                    backgroundImage: user?.kakaoAccount?.profile?.profileImageUrl != null
-                        ? NetworkImage(user!.kakaoAccount!.profile!.profileImageUrl!)
+                    backgroundColor: brandColor,
+                    backgroundImage: profileImageUrl != null
+                        ? NetworkImage(profileImageUrl!)
                         : null,
-                    child: user?.kakaoAccount?.profile?.profileImageUrl == null
-                        ? const Icon(Icons.person, size: 50, color: Colors.black)
+                    child: profileImageUrl == null
+                        ? const Icon(Icons.person,
+                            size: 50, color: Colors.white)
                         : null,
                   ),
                   Positioned(
@@ -67,9 +109,9 @@ class ProfileView extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // 환영 메시지
               const Text(
                 "로그인 완료! 🎉",
@@ -78,25 +120,26 @@ class ProfileView extends StatelessWidget {
                   color: Colors.grey,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // 닉네임
               Text(
-                "${user?.kakaoAccount?.profile?.nickname ?? '사용자'}님",
+                "$displayName님",
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // 이메일
-              if (user?.kakaoAccount?.email != null) ...[
+              if (email != null) ...[
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(20),
@@ -107,7 +150,7 @@ class ProfileView extends StatelessWidget {
                       Icon(Icons.email, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 6),
                       Text(
-                        user!.kakaoAccount!.email!,
+                        email!,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],
@@ -117,34 +160,40 @@ class ProfileView extends StatelessWidget {
                   ),
                 ),
               ],
-              
+
               const SizedBox(height: 16),
-              
+
               // 추가 사용자 정보 (선택사항)
-              if (user?.kakaoAccount?.profile?.thumbnailImageUrl != null) ...[
-                const Divider(),
-                const SizedBox(height: 12),
-                const Text(
-                  "계정 정보",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+              const Divider(),
+              const SizedBox(height: 12),
+              const Text(
+                "계정 정보",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: 8),
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                  Icons.login, "로그인 방식", loginType == 'kakao' ? '카카오' : '구글'),
+              if (loginType == 'kakao' && user != null) ...[
                 _buildInfoRow(Icons.account_circle, "카카오 ID", "${user?.id}"),
                 if (user?.kakaoAccount?.ageRange != null)
-                  _buildInfoRow(Icons.cake, "연령대", user!.kakaoAccount!.ageRange!.name),
+                  _buildInfoRow(
+                      Icons.cake, "연령대", user!.kakaoAccount!.ageRange!.name),
                 if (user?.kakaoAccount?.gender != null)
-                  _buildInfoRow(Icons.person_outline, "성별", user!.kakaoAccount!.gender!.name),
+                  _buildInfoRow(Icons.person_outline, "성별",
+                      user!.kakaoAccount!.gender!.name),
+              ] else if (loginType == 'google' && googleUser != null) ...[
+                _buildInfoRow(Icons.account_circle, "구글 ID", googleUser!.id),
               ],
             ],
           ),
         ),
-        
+
         const Spacer(flex: 2),
-        
+
         // 로그아웃 버튼
         Container(
           width: double.infinity,
@@ -184,7 +233,7 @@ class ProfileView extends StatelessWidget {
             ),
           ),
         ),
-        
+
         const Spacer(flex: 1),
       ],
     );

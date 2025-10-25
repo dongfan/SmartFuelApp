@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 class LoginView extends StatelessWidget {
   final VoidCallback? onKakaoLoginPressed;
+  final VoidCallback? onGoogleLoginPressed;
   final bool isLoading;
 
   const LoginView({
     super.key,
     this.onKakaoLoginPressed,
+    this.onGoogleLoginPressed,
     this.isLoading = false,
   });
 
@@ -15,7 +17,7 @@ class LoginView extends StatelessWidget {
     return Column(
       children: [
         const Spacer(flex: 2),
-        
+
         // 로고 영역
         Container(
           width: 120,
@@ -37,21 +39,21 @@ class LoginView extends StatelessWidget {
             color: Colors.black,
           ),
         ),
-        
+
         const SizedBox(height: 40),
-        
+
         // 제목
         const Text(
-          "카카오 로그인",
+          "SNS 로그인",
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         const Text(
           "간편하고 안전하게 로그인하세요",
           style: TextStyle(
@@ -60,10 +62,80 @@ class LoginView extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-        
+
         const Spacer(flex: 3),
-        
-        // 로그인 버튼
+
+        // 구글 로그인 버튼
+        Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: isLoading ? null : onGoogleLoginPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black87,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Colors.grey, width: 0.5),
+              ),
+              elevation: 0,
+            ),
+            child: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.grey,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Image.network(
+                          'https://developers.google.com/identity/images/g-logo.png',
+                          width: 20,
+                          height: 20,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.account_circle,
+                              size: 20,
+                              color: Colors.blue,
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Google로 계속하기",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 카카오 로그인 버튼
         Container(
           width: double.infinity,
           height: 56,
@@ -123,7 +195,7 @@ class LoginView extends StatelessWidget {
                   ),
           ),
         ),
-        
+
         const SizedBox(height: 16),
         /*
         // 안내 텍스트
