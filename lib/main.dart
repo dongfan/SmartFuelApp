@@ -24,15 +24,14 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'NotoSansKR', // 한글 폰트 (옵션)
         // 전체 배경을 연한 그레이 계열로 설정하고, 기본 색상은 차분한 톤으로 지정
-        colorScheme: ColorScheme.light(
-          primary: const Color(0xFF607D8B), // blueGrey tone for primary actions
-          background: const Color(0xFFF5F7FA),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF607D8B), // blueGrey tone for primary actions
+          background: Color(0xFFF5F7FA),
           surface: Colors.white,
           onPrimary: Colors.white,
         ),
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
-        cardColor: Colors.white,
-        dialogBackgroundColor: Colors.white,
+        cardColor: Colors.white, dialogTheme: DialogThemeData(backgroundColor: Colors.white),
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
