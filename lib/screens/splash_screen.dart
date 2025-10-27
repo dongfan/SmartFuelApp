@@ -21,50 +21,52 @@ class _SplashScreenState extends State<SplashScreen> {
 
   /// Delay splash for 3 seconds, then check login services and navigate.
   Future<void> _checkAndNavigate() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-
     try {
-      // 먼저 카카오 로그인 여부 확인 (비동기)
-      bool kakaoLoggedIn = await KakaoLoginService.instance.isLoggedIn();
-      if (kakaoLoggedIn) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
-          );
-        });
-        return;
-      }
-    } catch (_) {
-      // 실패 시 무시하고 다음 검사로 진행
-    }
-
-    try {
-      // 구글은 동기적으로 현재 사용자를 확인할 수 있음
-      if (GoogleLoginService.instance.isSignedIn) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
-          );
-        });
-        return;
-      }
-    } catch (_) {
-      // 무시
-    }
-
-    // 로그인되어 있지 않으면 로그인 화면으로 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 3초 대기
+      await Future.delayed(const Duration(seconds: 3));
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    });
+
+      // 먼저 카카오 로그인 여부 확인
+      bool isKakaoLoggedIn = false;
+      try {
+        isKakaoLoggedIn = await KakaoLoginService.instance.isLoggedIn();
+      } catch (e) {
+        debugPrint('카카오 로그인 체크 실패: $e');
+      }
+
+      // 구글 로그인 여부 확인
+      bool isGoogleLoggedIn = false;
+      try {
+        isGoogleLoggedIn = GoogleLoginService.instance.isSignedIn;
+      } catch (e) {
+        debugPrint('구글 로그인 체크 실패: $e');
+      }
+
+      // mounted 체크
+      if (!mounted) return;
+
+      // 로그인 상태에 따라 화면 전환
+      if (isKakaoLoggedIn || isGoogleLoggedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      debugPrint('스플래시 화면 오류: $e');
+      if (mounted) {
+        // 오류 발생 시 로그인 화면으로 이동
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    }
   }
 
   @override

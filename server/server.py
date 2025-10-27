@@ -67,7 +67,7 @@ def _ros_publisher_loop():
 
             try:
                 msg = String()
-                msg.data = json.dumps(payload)
+                msg.data = json.dumps(payload, ensure_ascii=False)
                 pub.publish(msg)
                 print(f"Published payload to /start_fuel via rclpy: {payload.get('orderId')}")
             except Exception as e:
@@ -116,7 +116,7 @@ def enqueue_publish(payload: dict) -> bool:
 
     # Fallback: use ros2 CLI
     try:
-        data_str = json.dumps(payload)
+        data_str = json.dumps(payload, ensure_ascii=False)
         cmd = [
             "ros2",
             "topic",

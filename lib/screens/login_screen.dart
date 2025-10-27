@@ -27,21 +27,21 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
     _checkLoginStatus();
+  });
   }
 
   /// 로그인 상태 확인
   Future<void> _checkLoginStatus() async {
+    if (_isLoading) return; // ✅ 로그인 시도 중이면 중복 체크 방지
+
     try {
-      // 카카오 로그인 상태 확인
       bool isKakaoLoggedIn = await _kakaoService.isLoggedIn();
       if (isKakaoLoggedIn) {
         await _getKakaoUserInfo();
-        // 이미 카카오에 로그인되어 있으면 주유 선택 화면으로 이동 (post-frame으로 안전하게 실행)
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // print('DEBUG: scheduling navigation from _checkLoginStatus');
           if (!mounted) return;
-          // print('DEBUG: executing navigation from _checkLoginStatus');
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
@@ -50,13 +50,12 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      // 구글 로그인 상태 확인
       if (_googleService.isSignedIn) {
         await _getGoogleUserInfo();
         return;
       }
     } catch (e) {
-      // print('로그인 상태 확인 실패: $e');
+      debugPrint('로그인 상태 확인 실패: $e');
     }
   }
 
@@ -102,51 +101,48 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// 카카오 로그인 실행
   Future<void> _loginWithKakao() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (_isLoading) return;
+
+    setState(() => _isLoading = true);
+    debugPrint('🚀 카카오 로그인 시도');
 
     try {
-      OAuthToken? token = await _kakaoService.loginWithKakaoTalk();
-
-      if (token != null) {
-        // print('카카오 로그인 성공: ${token.accessToken}');
-        await _getKakaoUserInfo();
-        setState(() {
-          _loginType = 'kakao';
-        });
-        _showSuccessSnackBar('카카오 로그인 성공!');
-        // 카카오 로그인 성공 시 주유 선택 화면으로 이동 (post-frame으로 안전하게 실행)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // print('DEBUG: scheduling navigation from _loginWithKakao');
-          if (!mounted) return;
-          // print('DEBUG: executing navigation from _loginWithKakao');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
-          );
-        });
-      } else {
-        // print('로그인이 취소되었습니다.');
-        _showErrorSnackBar('로그인이 취소되었습니다.');
+      final alreadyLoggedIn = await _kakaoService.isLoggedIn();
+      if (alreadyLoggedIn) {
+        debugPrint('✅ 이미 로그인된 세션 감지 → 다음 화면으로 이동');
+        _navigateToFuelSelection();
+        return;
       }
-    } catch (error) {
-      // print('카카오 로그인 실패: $error');
-      _showErrorSnackBar('로그인에 실패했습니다. 다시 시도해주세요.');
+
+      OAuthToken? token = await _kakaoService.loginWithKakaoTalk();
+      debugPrint('🟢 loginWithKakaoTalk 결과: ${token != null ? "성공" : "null"}');
+
+      final user = await UserApi.instance.me();
+      debugPrint('👤 로그인 성공: ${user.kakaoAccount?.profile?.nickname}');
+      await _getKakaoUserInfo();
+      _showSuccessSnackBar('로그인 성공!');
+
+      // ✅ 로그인 종료 전에 화면 전환 먼저
+      _navigateToFuelSelection();
+
+    } catch (e) {
+      debugPrint('❌ 로그인 중 예외: $e');
+      _showErrorSnackBar('로그인 실패: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
+      // ✅ 네비게이션 완료 후 로딩 해제
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) setState(() => _isLoading = false);
       });
     }
   }
-
+  
   /// 사용자 정보 가져오기
   Future<void> _getKakaoUserInfo() async {
     try {
       User kakaoUser = await UserApi.instance.me();
       setState(() {
         _user = kakaoUser;
-        _isLoggedIn = true;
+        //_isLoggedIn = true;
       });
       // print('사용자 정보 가져오기 성공');
     } catch (error) {
@@ -193,6 +189,17 @@ class _LoginScreenState extends State<LoginScreen> {
       // print('로그아웃 실패: $error');
       _showErrorSnackBar('로그아웃에 실패했습니다.');
     }
+  }
+
+  void _navigateToFuelSelection() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const FuelSelectionScreen()),
+        (route) => false,
+      );
+    });
   }
 
   /// 성공 스낵바 표시

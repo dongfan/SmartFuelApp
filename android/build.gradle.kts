@@ -1,3 +1,16 @@
+
+buildscript {
+    repositories {
+        // ✅ 이 두 줄이 꼭 필요합니다
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // ✅ Google Services classpath
+        classpath("com.google.gms:google-services:4.4.2")
+    }
+}
+
 allprojects {
     repositories {
         google()

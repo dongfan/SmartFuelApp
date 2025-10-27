@@ -17,7 +17,7 @@ class PaymentScreen extends StatefulWidget {
 
 class _PaymentScreenState extends State<PaymentScreen> {
   bool isProcessing = false;
-  final String rosServerUrl = 'http://110.120.1.39:12345/start_fuel'; // 수정 필요
+  final String rosServerUrl = 'http://192.168.50.107:12345/start_fuel'; // 수정 필요
 
   Future<void> simulatePayment() async {
     setState(() => isProcessing = true);

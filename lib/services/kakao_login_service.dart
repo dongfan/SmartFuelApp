@@ -91,10 +91,10 @@ class KakaoLoginService {
   /// 로그인 상태 확인
   Future<bool> isLoggedIn() async {
     try {
-      await UserApi.instance.accessTokenInfo();
-      return true;
-    } catch (error) {
-      return false;
-    }
+    final tokenInfo = await UserApi.instance.accessTokenInfo();
+    return tokenInfo.id != null;
+  } catch (_) {
+    return false;
+  }
   }
 }
